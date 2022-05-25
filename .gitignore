@@ -60,9 +60,7 @@ dkms.conf
 # Compilation
 bin/
 compile_commands.json
-run.sh
 test
-CMakeLists.txt
 
 # Editors
 .vscode/

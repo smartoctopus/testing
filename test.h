@@ -11,8 +11,10 @@
 #define RANDOM_IDENT(_ident) RANDOM_IDENT_(_ident, RANDOM_NUMBER)
 
 /* COLORS */
-#define COLOR_RED "\033[0;31m"
 #define COLOR_RESET "\033[0m"
+#define COLOR_RED "\033[1;31m"
+#define COLOR_GREEN "\033[1;32m"
+#define COLOR_YELLOW "\033[1;33m"
 
 /* Fundamental macros */
 #define test(_str)                                                             \
@@ -58,14 +60,7 @@
 #define after_each_(_ident) after_each__(_ident)
 #define after_each() after_each_(RANDOM_IDENT(after_each))
 
-#define expect(_expr)                                                          \
-  do {                                                                         \
-    if (!(_expr)) {                                                            \
-      char *msg = format(#_expr, true);                                        \
-      fprintf(stderr, "%s\n", msg);                                            \
-      free(msg);                                                               \
-    }                                                                          \
-  } while (0)
+#define expect(_expr) expect_(ctx, _expr, #_expr)
 
 /* Types */
 typedef struct Test {
@@ -86,7 +81,8 @@ typedef struct Describe {
 typedef struct TestContext {
   bool use_color;
   bool pre_run;
-  size_t current_describe;
+  uint32_t current_describe;
+  uint32_t indent;
   array(Describe) describes;
 } TestContext;
 
@@ -187,10 +183,14 @@ bool register_after_each(TestContext *ctx) {
   return true;
 }
 
-/* TODO: finish this */
-char *format(const char *expr, bool is_error) {
-  (void)is_error;
-  return strf(COLOR_RED "Error:" COLOR_RESET " %s", expr);
+void expect_(TestContext *ctx, bool value, const char *expr) {
+  if (value) {
+    fprintf(stderr, "%*s" COLOR_GREEN "✓" COLOR_RESET " %s\n", ctx->indent * 4,
+            "", expr);
+  } else {
+    fprintf(stderr, "%*s" COLOR_RED "◯" COLOR_RESET " %s\n", ctx->indent * 4,
+            "", expr);
+  }
 }
 
 #ifndef CUSTOM_MAIN
@@ -210,6 +210,8 @@ int main(void) {
   for (; ctx.current_describe < array_length(ctx.describes);
        ctx.current_describe++) {
     Describe *describe = &ctx.describes[ctx.current_describe];
+    fprintf(stderr, "%*s• %s:\n", ctx.indent * 4, "", describe->name);
+    ctx.indent++;
     /* Before */
     if (describe->before != -1) {
       describe->current_test = describe->before;
@@ -230,7 +232,15 @@ int main(void) {
         describe->current_test = test;
       }
 
+      fprintf(stderr, "%*s• %s:", ctx.indent * 4, "",
+              describe->tests[test].name);
+      if (describe->tests[test].skip) {
+        fprintf(stderr, " " COLOR_YELLOW "Skipped" COLOR_RESET);
+      }
+      fprintf(stderr, "\n");
+      ctx.indent++;
       test_func(&ctx);
+      ctx.indent--;
 
       if (describe->after_each != -1) {
         describe->current_test = describe->after_each;
@@ -244,6 +254,11 @@ int main(void) {
       describe->current_test = describe->after;
       test_func(&ctx);
     }
+
+    if (cmp_str(describe->name, test_name)) {
+      ctx.indent++;
+    }
+    ctx.indent--;
   }
 
   return 0;

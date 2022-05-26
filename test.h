@@ -27,12 +27,12 @@
 #define describe(_str) describe_((_str), RANDOM_IDENT(describe))
 
 #define it__(_str, _ident)                                                     \
-  for (bool _ident = register_it(ctx, _str); _ident && run_it(ctx, _str);      \
-       _ident = false)
+  for (bool _ident = register_it(ctx, _str, false);                            \
+       _ident && run_it(ctx, _str); _ident = false)
 #define it_(_str, _ident) it__(_str, _ident)
 #define it(_str) it_((_str), RANDOM_IDENT(it))
 
-#define skip(_str) for ((void)register_it(ctx, (_str)); false;)
+#define skip(_str) for ((void)register_it(ctx, (_str), true); false;)
 
 #define before__(_ident)                                                       \
   for (bool _ident = register_before(ctx); _ident && run_it(ctx, "before");    \
@@ -70,6 +70,7 @@
 /* Types */
 typedef struct Test {
   const char *name;
+  bool skip;
 } Test;
 
 typedef struct Describe {
@@ -128,10 +129,11 @@ int describe_end(TestContext *ctx, int prev) {
   return false;
 }
 
-bool register_it(TestContext *ctx, const char *name) {
+bool register_it(TestContext *ctx, const char *name, bool skip) {
   if (ctx->pre_run) {
     Test test;
     test.name = name;
+    test.skip = skip;
     array_push(ctx->describes[ctx->current_describe].tests, test);
   }
   return true;
@@ -147,7 +149,7 @@ bool run_it(TestContext *ctx, const char *name) {
 
 bool register_before(TestContext *ctx) {
   if (ctx->pre_run) {
-    Test before = {"before"};
+    Test before = {"before", false};
     array_push(ctx->describes[ctx->current_describe].tests, before);
     ctx->describes[ctx->current_describe].before =
         array_length(ctx->describes[ctx->current_describe].tests) - 1;
@@ -157,7 +159,7 @@ bool register_before(TestContext *ctx) {
 
 bool register_before_each(TestContext *ctx) {
   if (ctx->pre_run) {
-    Test before_each = {"before_each"};
+    Test before_each = {"before_each", false};
     array_push(ctx->describes[ctx->current_describe].tests, before_each);
     ctx->describes[ctx->current_describe].before_each =
         array_length(ctx->describes[ctx->current_describe].tests) - 1;
@@ -167,7 +169,7 @@ bool register_before_each(TestContext *ctx) {
 
 bool register_after(TestContext *ctx) {
   if (ctx->pre_run) {
-    Test after = {"after"};
+    Test after = {"after", false};
     array_push(ctx->describes[ctx->current_describe].tests, after);
     ctx->describes[ctx->current_describe].after =
         array_length(ctx->describes[ctx->current_describe].tests) - 1;
@@ -177,7 +179,7 @@ bool register_after(TestContext *ctx) {
 
 bool register_after_each(TestContext *ctx) {
   if (ctx->pre_run) {
-    Test after_each = {"after_each"};
+    Test after_each = {"after_each", false};
     array_push(ctx->describes[ctx->current_describe].tests, after_each);
     ctx->describes[ctx->current_describe].after_each =
         array_length(ctx->describes[ctx->current_describe].tests) - 1;

@@ -96,13 +96,7 @@ bool cmp_str(const char *s1, const char *s2) {
   if (s1_length != s2_length) {
     return false;
   }
-  size_t length = s1_length;
-  for (size_t i = 0; i < length; ++i) {
-    if (s1[i] != s2[i]) {
-      return false;
-    }
-  }
-  return true;
+  return strncmp(s1, s2, s1_length) == 0;
 }
 
 int register_describe(TestContext *ctx, const char *name) {
@@ -119,7 +113,6 @@ int register_describe(TestContext *ctx, const char *name) {
     array_push(ctx->describes, describe);
     ctx->current_describe = array_length(ctx->describes) - 1;
   }
-
   return true;
 }
 

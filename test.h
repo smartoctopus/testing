@@ -185,10 +185,10 @@ bool register_after_each(TestContext *ctx) {
 
 void expect_(TestContext *ctx, bool value, const char *expr) {
   if (value) {
-    fprintf(stderr, "%*s" COLOR_GREEN "✓" COLOR_RESET " %s\n", ctx->indent * 4,
+    fprintf(stderr, "%*s" COLOR_GREEN "✓" COLOR_RESET " %s\n", ctx->indent * 2,
             "", expr);
   } else {
-    fprintf(stderr, "%*s" COLOR_RED "◯" COLOR_RESET " %s\n", ctx->indent * 4,
+    fprintf(stderr, "%*s" COLOR_RED "◯" COLOR_RESET " %s\n", ctx->indent * 2,
             "", expr);
   }
 }
@@ -210,7 +210,8 @@ int main(void) {
   for (; ctx.current_describe < array_length(ctx.describes);
        ctx.current_describe++) {
     Describe *describe = &ctx.describes[ctx.current_describe];
-    fprintf(stderr, "%*s• %s:\n", ctx.indent * 4, "", describe->name);
+    fprintf(stderr, "%*s• %s:\n", ctx.indent * 2, "", describe->name);
+    // Describe indentation
     ctx.indent++;
     /* Before */
     if (describe->before != -1) {
@@ -233,11 +234,13 @@ int main(void) {
       }
 
       fprintf(stderr, "%*s• %s:", ctx.indent * 4, "",
+      fprintf(stderr, "%*s• %s:", ctx.indent * 2, "",
               describe->tests[test].name);
       if (describe->tests[test].skip) {
         fprintf(stderr, " " COLOR_YELLOW "Skipped" COLOR_RESET);
       }
       fprintf(stderr, "\n");
+      // Test
       ctx.indent++;
       test_func(&ctx);
       ctx.indent--;
@@ -258,6 +261,7 @@ int main(void) {
     if (cmp_str(describe->name, test_name)) {
       ctx.indent++;
     }
+    // Describe indentation
     ctx.indent--;
   }
 

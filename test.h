@@ -15,6 +15,7 @@
 #define COLOR_RED "\033[1;31m"
 #define COLOR_GREEN "\033[1;32m"
 #define COLOR_YELLOW "\033[1;33m"
+#define COLOR_WHITE "\033[1;37m"
 
 /* Fundamental macros */
 #define test(_str)                                                             \
@@ -81,6 +82,9 @@ typedef struct Describe {
 typedef struct TestContext {
   bool use_color;
   bool pre_run;
+  uint16_t passed_tests;
+  uint16_t skipped_tests;
+  uint16_t failed_tests;
   uint32_t current_describe;
   uint32_t indent;
   array(Describe) describes;
@@ -185,9 +189,11 @@ bool register_after_each(TestContext *ctx) {
 
 void expect_(TestContext *ctx, bool value, const char *expr) {
   if (value) {
+    ctx->passed_tests++;
     fprintf(stderr, "%*s" COLOR_GREEN "✓" COLOR_RESET " %s\n", ctx->indent * 2,
             "", expr);
   } else {
+    ctx->failed_tests++;
     fprintf(stderr, "%*s" COLOR_RED "◯" COLOR_RESET " %s\n", ctx->indent * 2,
             "", expr);
   }
@@ -233,13 +239,14 @@ int main(void) {
         describe->current_test = test;
       }
 
-      fprintf(stderr, "%*s• %s:", ctx.indent * 4, "",
       fprintf(stderr, "%*s• %s:", ctx.indent * 2, "",
               describe->tests[test].name);
       if (describe->tests[test].skip) {
+        ctx.skipped_tests++;
         fprintf(stderr, " " COLOR_YELLOW "Skipped" COLOR_RESET);
       }
       fprintf(stderr, "\n");
+
       // Test
       ctx.indent++;
       test_func(&ctx);
@@ -261,9 +268,20 @@ int main(void) {
     if (cmp_str(describe->name, test_name)) {
       ctx.indent++;
     }
+
     // Describe indentation
     ctx.indent--;
   }
+
+  // Print the report
+  ctx.indent--;
+  fprintf(stderr, "\n" COLOR_WHITE "Tests:" COLOR_RESET "\n");
+  fprintf(stderr, "  • " COLOR_GREEN "%d Passed" COLOR_RESET "\n",
+          ctx.passed_tests);
+  fprintf(stderr, "  • " COLOR_YELLOW "%d Skipped" COLOR_RESET "\n",
+          ctx.skipped_tests);
+  fprintf(stderr, "  • " COLOR_RED "%d Failed" COLOR_RESET "\n",
+          ctx.failed_tests);
 
   return 0;
 }

@@ -18,31 +18,36 @@ typedef signed char int8_t;
 typedef unsigned int uint32_t;
 #endif
 
-#define offsetof(s, f) ((size_t) & (((s*)0)->f))
-#define containerof(ptr, s, f) ((s*)((char*)ptr - offsetof(s, f)))
+#if !defined(offsetof)
+#    define offsetof(s, f) ((size_t) & (((s*)0)->f))
+#    define containerof(ptr, s, f) ((s*)((char*)ptr - offsetof(s, f)))
+#endif
 
-#define MAX(x, y) (x) > (y) ? (x) : (y)
+#if !defined(MAX)
+#    define MAX(x, y) (x) > (y) ? (x) : (y)
+#endif
 
-#define array(t) t*
-#define array_free(a) ((a) ? (free(array_header((a))), (a) = NULL) : 0)
-#define array_capacity(a) ((a) ? (size_t)array_header((a))->capacity : 0)
-#define array_length(a) ((a) ? (size_t)array_header((a))->length : 0)
-#define array_reserve(a, n) \
-    ((a) ? ((a) = array_growf((a), sizeof(*(a)), 0, (n))) : 0)
-#define array_push(a, elem) \
-    (array_maybegrow((a), 1), (a)[array_header((a))->length++] = (elem))
-#define array_pop(a) \
-    (array_header((a))->length--, (a)[array_header((a))->length])
-#define array_last(a) ((a)[array_header((a))->length - 1])
-#define array_end(a) ((a) + array_length(a))
+#if !defined(array)
+#    define array(t) t*
+#    define array_free(a) ((a) ? (free(array_header((a))), (a) = NULL) : 0)
+#    define array_capacity(a) ((a) ? (size_t)array_header((a))->capacity : 0)
+#    define array_length(a) ((a) ? (size_t)array_header((a))->length : 0)
+#    define array_reserve(a, n) \
+        ((a) ? ((a) = array_growf((a), sizeof(*(a)), 0, (n))) : 0)
+#    define array_push(a, elem) \
+        (array_maybegrow((a), 1), (a)[array_header((a))->length++] = (elem))
+#    define array_pop(a) \
+        (array_header((a))->length--, (a)[array_header((a))->length])
+#    define array_last(a) ((a)[array_header((a))->length - 1])
+#    define array_end(a) ((a) + array_length(a))
 
 /* Internal details */
-#define array_header(a) containerof(a, ArrayHeader, ptr)
-#define array_maybegrow(a, n)                                \
-    ((!(a) || array_length((a)) + (n) > array_capacity((a))) \
-            ? array_grow((a), (n))                           \
-            : 0)
-#define array_grow(a, n) ((a) = array_growf((a), sizeof(*(a)), (size_t)(n), 0))
+#    define array_header(a) containerof(a, ArrayHeader, ptr)
+#    define array_maybegrow(a, n)                                \
+        ((!(a) || array_length((a)) + (n) > array_capacity((a))) \
+                ? array_grow((a), (n))                           \
+                : 0)
+#    define array_grow(a, n) ((a) = array_growf((a), sizeof(*(a)), (size_t)(n), 0))
 
 typedef struct ArrayHeader {
     size_t length;
@@ -50,8 +55,10 @@ typedef struct ArrayHeader {
     char* ptr;
 } ArrayHeader;
 
+#endif
+
 #ifdef UTILITY_IMPL
-void* array_growf(void* a, size_t elem_size, size_t add_len, size_t new_cap)
+static void* array_growf(void* a, size_t elem_size, size_t add_len, size_t new_cap)
 {
     ArrayHeader* b;
     size_t old_len = array_length(a);
@@ -71,7 +78,7 @@ void* array_growf(void* a, size_t elem_size, size_t add_len, size_t new_cap)
     return (void*)((char*)b + offsetof(ArrayHeader, ptr));
 }
 
-char* strf(const char* fmt, ...)
+static char* strf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

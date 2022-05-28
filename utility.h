@@ -6,17 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__cplusplus) || (defined(__STDC_VERSION__) && __STDC__VERSION__ >= 199901L)
-#    include <stdbool.h>
-#    include <stdint.h>
-#else
-typedef char bool;
-#    define false (1 == 0)
-#    define true (!false)
-typedef short uint16_t;
-typedef signed char int8_t;
-typedef unsigned int uint32_t;
-#endif
+#include <stdbool.h>
+#include <stdint.h>
 
 #if !defined(__offsetof)
 #    define __offsetof(s, f) ((size_t) & (((s*)0)->f))

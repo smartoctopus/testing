@@ -18,77 +18,64 @@ typedef signed char int8_t;
 typedef unsigned int uint32_t;
 #endif
 
-#if !defined(offsetof)
-#    define offsetof(s, f) ((size_t) & (((s*)0)->f))
-#    define containerof(ptr, s, f) ((s*)((char*)ptr - offsetof(s, f)))
+#if !defined(__offsetof)
+#    define __offsetof(s, f) ((size_t) & (((s*)0)->f))
+#    define __containerof(ptr, s, f) ((s*)((char*)ptr - __offsetof(s, f)))
 #endif
 
-#if !defined(MAX)
-#    define MAX(x, y) (x) > (y) ? (x) : (y)
+#if !defined(__MAX)
+#    define __MAX(x, y) (x) > (y) ? (x) : (y)
 #endif
 
-#if !defined(array)
-#    define array(t) t*
-#    define array_free(a) ((a) ? (free(array_header((a))), (a) = NULL) : 0)
-#    define array_capacity(a) ((a) ? (size_t)array_header((a))->capacity : 0)
-#    define array_length(a) ((a) ? (size_t)array_header((a))->length : 0)
-#    define array_reserve(a, n) \
-        ((a) ? ((a) = array_growf((a), sizeof(*(a)), 0, (n))) : 0)
-#    define array_push(a, elem) \
-        (array_maybegrow((a), 1), (a)[array_header((a))->length++] = (elem))
-#    define array_pop(a) \
-        (array_header((a))->length--, (a)[array_header((a))->length])
-#    define array_last(a) ((a)[array_header((a))->length - 1])
-#    define array_end(a) ((a) + array_length(a))
+#if !defined(__array)
+#    define __array(t) t*
+#    define __array_free(a) ((a) ? (free(__array_header((a))), (a) = NULL) : 0)
+#    define __array_capacity(a) ((a) ? (size_t)__array_header((a))->capacity : 0)
+#    define __array_length(a) ((a) ? (size_t)__array_header((a))->length : 0)
+#    define __array_reserve(a, n) \
+        ((a) ? ((a) = __array_growf((a), sizeof(*(a)), 0, (n))) : 0)
+#    define __array_push(a, elem) \
+        (__array_maybegrow((a), 1), (a)[__array_header((a))->length++] = (elem))
+#    define __array_pop(a) \
+        (__array_header((a))->length--, (a)[__array_header((a))->length])
+#    define __array_last(a) ((a)[__array_header((a))->length - 1])
+#    define __array_end(a) ((a) + __array_length(a))
 
 /* Internal details */
-#    define array_header(a) containerof(a, ArrayHeader, ptr)
-#    define array_maybegrow(a, n)                                \
-        ((!(a) || array_length((a)) + (n) > array_capacity((a))) \
-                ? array_grow((a), (n))                           \
+#    define __array_header(a) __containerof(a, __ArrayHeader, ptr)
+#    define __array_maybegrow(a, n)                                  \
+        ((!(a) || __array_length((a)) + (n) > __array_capacity((a))) \
+                ? __array_grow((a), (n))                             \
                 : 0)
-#    define array_grow(a, n) ((a) = array_growf((a), sizeof(*(a)), (size_t)(n), 0))
+#    define __array_grow(a, n) ((a) = __array_growf((a), sizeof(*(a)), (size_t)(n), 0))
 
-typedef struct ArrayHeader {
+typedef struct __ArrayHeader {
     size_t length;
     size_t capacity;
     char* ptr;
-} ArrayHeader;
+} __ArrayHeader;
 
 #endif
 
 #ifdef UTILITY_IMPL
-static void* array_growf(void* a, size_t elem_size, size_t add_len, size_t new_cap)
+static void* __array_growf(void* a, size_t elem_size, size_t add_len, size_t new_cap)
 {
-    ArrayHeader* b;
-    size_t old_len = array_length(a);
+    __ArrayHeader* b;
+    size_t old_len = __array_length(a);
     size_t new_len = old_len + add_len;
-    new_cap = MAX(new_len, new_cap);
+    new_cap = __MAX(new_len, new_cap);
 
-    if (new_cap <= array_capacity(a)) {
+    if (new_cap <= __array_capacity(a)) {
         return a;
     }
-    new_cap = MAX(MAX(new_cap, 2 * array_capacity(a)), 4);
+    new_cap = __MAX(__MAX(new_cap, 2 * __array_capacity(a)), 4);
 
-    b = (ArrayHeader*)realloc((a) ? array_header(a) : NULL,
-        offsetof(ArrayHeader, ptr) + new_cap * elem_size);
+    b = (__ArrayHeader*)realloc((a) ? __array_header(a) : NULL,
+        __offsetof(__ArrayHeader, ptr) + new_cap * elem_size);
     b->capacity = new_cap;
     b->length = old_len;
 
-    return (void*)((char*)b + offsetof(ArrayHeader, ptr));
-}
-
-static char* strf(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    size_t n = vsnprintf(NULL, 0, fmt, args) + 1;
-    va_end(args);
-    char* str = (char*)malloc(n);
-    va_start(args, fmt);
-    vsnprintf(str, n, fmt, args);
-    va_end(args);
-    return str;
+    return (void*)((char*)b + __offsetof(__ArrayHeader, ptr));
 }
 #endif
 

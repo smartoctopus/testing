@@ -76,7 +76,7 @@ typedef struct Describe {
     int8_t before_each;
     int8_t after_each;
     const char* name;
-    array(Test) tests;
+    __array(Test) tests;
 } Describe;
 
 typedef struct TestContext {
@@ -87,7 +87,7 @@ typedef struct TestContext {
     uint16_t failed_tests;
     uint32_t current_describe;
     uint32_t indent;
-    array(Describe) describes;
+    __array(Describe) describes;
 } TestContext;
 
 /* Functions */
@@ -113,8 +113,8 @@ int register_describe(TestContext* ctx, const char* name)
         describe.before_each = -1;
         describe.after_each = -1;
 
-        array_push(ctx->describes, describe);
-        ctx->current_describe = array_length(ctx->describes) - 1;
+        __array_push(ctx->describes, describe);
+        ctx->current_describe = __array_length(ctx->describes) - 1;
     }
     return true;
 }
@@ -139,7 +139,7 @@ bool register_it(TestContext* ctx, const char* name, bool skip)
         Test test;
         test.name = name;
         test.skip = skip;
-        array_push(ctx->describes[ctx->current_describe].tests, test);
+        __array_push(ctx->describes[ctx->current_describe].tests, test);
     }
     return true;
 }
@@ -157,8 +157,8 @@ bool register_before(TestContext* ctx)
 {
     if (ctx->pre_run) {
         Test before = { "before", false };
-        array_push(ctx->describes[ctx->current_describe].tests, before);
-        ctx->describes[ctx->current_describe].before = array_length(ctx->describes[ctx->current_describe].tests) - 1;
+        __array_push(ctx->describes[ctx->current_describe].tests, before);
+        ctx->describes[ctx->current_describe].before = __array_length(ctx->describes[ctx->current_describe].tests) - 1;
     }
     return true;
 }
@@ -167,8 +167,8 @@ bool register_before_each(TestContext* ctx)
 {
     if (ctx->pre_run) {
         Test before_each = { "before_each", false };
-        array_push(ctx->describes[ctx->current_describe].tests, before_each);
-        ctx->describes[ctx->current_describe].before_each = array_length(ctx->describes[ctx->current_describe].tests) - 1;
+        __array_push(ctx->describes[ctx->current_describe].tests, before_each);
+        ctx->describes[ctx->current_describe].before_each = __array_length(ctx->describes[ctx->current_describe].tests) - 1;
     }
     return true;
 }
@@ -177,8 +177,8 @@ bool register_after(TestContext* ctx)
 {
     if (ctx->pre_run) {
         Test after = { "after", false };
-        array_push(ctx->describes[ctx->current_describe].tests, after);
-        ctx->describes[ctx->current_describe].after = array_length(ctx->describes[ctx->current_describe].tests) - 1;
+        __array_push(ctx->describes[ctx->current_describe].tests, after);
+        ctx->describes[ctx->current_describe].after = __array_length(ctx->describes[ctx->current_describe].tests) - 1;
     }
     return true;
 }
@@ -187,8 +187,8 @@ bool register_after_each(TestContext* ctx)
 {
     if (ctx->pre_run) {
         Test after_each = { "after_each", false };
-        array_push(ctx->describes[ctx->current_describe].tests, after_each);
-        ctx->describes[ctx->current_describe].after_each = array_length(ctx->describes[ctx->current_describe].tests) - 1;
+        __array_push(ctx->describes[ctx->current_describe].tests, after_each);
+        ctx->describes[ctx->current_describe].after_each = __array_length(ctx->describes[ctx->current_describe].tests) - 1;
     }
     return true;
 }
@@ -221,7 +221,7 @@ int main(void)
 
     /* Actual run */
     ctx.pre_run = false;
-    for (; ctx.current_describe < array_length(ctx.describes);
+    for (; ctx.current_describe < __array_length(ctx.describes);
          ctx.current_describe++) {
         Describe* describe = &ctx.describes[ctx.current_describe];
         fprintf(stderr, "%*s• %s:\n", ctx.indent * 2, "", describe->name);
@@ -233,7 +233,7 @@ int main(void)
             test_func(&ctx);
             describe->current_test = 0;
         }
-        while (describe->current_test < array_length(describe->tests)) {
+        while (describe->current_test < __array_length(describe->tests)) {
             int test = describe->current_test;
             if (test == describe->before || test == describe->before_each || test == describe->after || test == describe->after_each) {
                 describe->current_test++;

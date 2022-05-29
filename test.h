@@ -62,6 +62,7 @@
 #define after_each() after_each_(RANDOM_IDENT(after_each))
 
 #define expect(_expr) expect_(ctx, _expr, #_expr)
+#define print(...) print_(ctx, __VA_ARGS__)
 
 /* Types */
 typedef struct Test {
@@ -204,6 +205,17 @@ void expect_(TestContext* ctx, bool value, const char* expr)
         fprintf(stderr, "%*s" COLOR_RED "◯" COLOR_RESET " %s\n", ctx->indent * 2,
             "", expr);
     }
+}
+
+PRINTF_ARGS(1)
+void print_(TestContext* ctx, const char* str, ...)
+{
+    va_list args;
+    fprintf(stderr, "%*s" COLOR_YELLOW "ⓘ" COLOR_RESET " ", ctx->indent * 2, "");
+    va_start(args, str);
+    vfprintf(stderr, str, args);
+    va_end(args);
+    fprintf(stderr, "\n");
 }
 
 #ifndef CUSTOM_MAIN

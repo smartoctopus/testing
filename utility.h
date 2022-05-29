@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -16,6 +17,15 @@
 
 #if !defined(__MAX)
 #    define __MAX(x, y) (x) > (y) ? (x) : (y)
+#endif
+
+// Printf argument check
+#if !defined(PRINTF_ARGS)
+#    if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
+#        define PRINTF_ARGS(FMT) __attribute__((format(printf, FMT, (FMT + 1))))
+#    else
+#        define PRINTF_ARGS(FMT)
+#    endif
 #endif
 
 #if !defined(__array)

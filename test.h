@@ -62,6 +62,7 @@
 #define after_each() after_each_(RANDOM_IDENT(after_each))
 
 #define expect(_expr) expect_(ctx, _expr, #_expr)
+#define expect_str(_expr, _str) expect_(ctx, _expr, _str)
 #define print(...) print_(ctx, __VA_ARGS__)
 
 /* Types */

@@ -20,6 +20,7 @@ test("Testing test")
         it("Runs0")
         {
             expect(4 == 2);
+            expect_str(4 == 4, "Hello 4 == 2");
             print("hello");
             print("%d", 30);
         }

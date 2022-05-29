@@ -290,6 +290,9 @@ int main(void)
 
         // Describe indentation
         ctx.indent--;
+
+        // Free tests
+        __array_free(describe->tests);
     }
 
     // Print the report
@@ -301,6 +304,8 @@ int main(void)
         ctx.skipped_tests);
     fprintf(stderr, "  • " COLOR_RED "%d Failed" COLOR_RESET "\n",
         ctx.failed_tests);
+
+    __array_free(ctx.describes);
 
     return 0;
 }

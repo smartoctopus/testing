@@ -21,7 +21,7 @@
 
 // Printf argument check
 #if !defined(PRINTF_ARGS)
-#    if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
+#    if defined(__GNUC__)
 #        define PRINTF_ARGS(FMT) __attribute__((format(printf, FMT, (FMT + 1))))
 #    else
 #        define PRINTF_ARGS(FMT)

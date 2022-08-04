@@ -208,7 +208,7 @@ void expect_(TestContext* ctx, bool value, const char* expr)
     }
 }
 
-PRINTF_ARGS(1)
+PRINTF_ARGS(2)
 void print_(TestContext* ctx, const char* str, ...)
 {
     va_list args;
